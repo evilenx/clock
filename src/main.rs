@@ -49,55 +49,23 @@ fn read_config() -> (f32, f32, bool) {
     (config.settings.font_size, config.settings.padding, config.settings.auto_resize)
 }
 
-fn calculate_text_dimensions(text: &str, font: &Font, scale: Scale) -> (f32, f32) {
-    let glyphs: Vec<_> = font.layout(text, scale, point(0.0, 0.0)).collect();
+
+
+fn calculate_window_size(font_size: f32, padding: f32) -> (usize, usize) {
+    // Calcular tamaño basado en el texto completo con nanosegundos: "HH:MM:SS.999"
+    let char_width = font_size * 0.65; // Mejor aproximación para caracteres monoespaciados
+    let text_length = 12.0; // "HH:MM:SS.999" = 12 caracteres
+    let width = (char_width * text_length + padding * 2.0) as usize;
+    let height = (font_size * 1.4 + padding * 2.0) as usize; // Más altura para mejor renderizado
     
-    if glyphs.is_empty() {
-        return (100.0, 50.0);
-    }
-    
-    let mut min_x = f32::INFINITY;
-    let mut max_x = f32::NEG_INFINITY;
-    let mut min_y = f32::INFINITY;
-    let mut max_y = f32::NEG_INFINITY;
-    
-    for glyph in &glyphs {
-        if let Some(bb) = glyph.pixel_bounding_box() {
-            min_x = min_x.min(bb.min.x as f32);
-            max_x = max_x.max(bb.max.x as f32);
-            min_y = min_y.min(bb.min.y as f32);
-            max_y = max_y.max(bb.max.y as f32);
-        }
-    }
-    
-    let width = if min_x.is_finite() && max_x.is_finite() {
-        (max_x - min_x).max(100.0)
-    } else {
-        100.0
-    };
-    
-    let height = if min_y.is_finite() && max_y.is_finite() {
-        (max_y - min_y).max(50.0)
-    } else {
-        50.0
-    };
+    // Asegurar mínimos más generosos
+    let width = width.max(250).min(720);
+    let height = height.max(350).min(1080);
     
     (width, height)
 }
 
-fn calculate_window_size(font_size: f32, padding: f32) -> (usize, usize) {
-    // Aproximación del tamaño de ventana basado en el tamaño de fuente
-    // Para formato "HH:MM:SS" (8 caracteres)
-    let char_width = font_size * 0.6; // Aproximación del ancho por carácter
-    let width = (char_width * 8.5 + padding * 2.0) as usize;
-    let height = (font_size * 1.2 + padding * 2.0) as usize;
-    
-    // Mínimos y máximos razonables
-    let width = width.max(200).min(1920);
-    let height = height.max(100).min(1080);
-    
-    (width, height)
-}
+// Función removida ya que minifb no soporta posicionamiento de ventana
 
 fn find_system_font() -> Vec<u8> {
     let font_paths = if cfg!(target_os = "windows") {
@@ -140,9 +108,6 @@ fn find_system_font() -> Vec<u8> {
         }
     }
 
-    // Si no encuentra ninguna fuente, terminar con error descriptivo
-    //panic!("❌ No se pudo encontrar ninguna fuente del sistema compatible.\n\
-     //      Instala una fuente monoespaciada como DejaVu Sans Mono o Liberation Mono.");
     // Fallback font embebida
     println!("No se encontró fuente del sistema, usando fuente por defecto");
     include_bytes!("../assets/Inter-Regular.otf").to_vec()
@@ -156,11 +121,11 @@ fn main() {
     let (initial_width, initial_height) = if auto_resize {
         calculate_window_size(font_size, padding)
     } else {
-        (800, 200) // Tamaño por defecto si auto_resize está deshabilitado
+        (400, 200) // Tamaño por defecto más grande si auto_resize está deshabilitado
     };
 
     let mut window = Window::new(
-        "Clock - ESC para salir",
+        "Clock - ESC para salir | B = fondo | F = fuente",
         initial_width,
         initial_height,
         WindowOptions {
@@ -170,7 +135,7 @@ fn main() {
         },
     ).expect("No se pudo crear la ventana");
 
-    window.limit_update_rate(Some(Duration::from_micros(1_000_000 / 144)));
+    window.limit_update_rate(Some(Duration::from_micros(1_000_000 / 60))); // 60 FPS es suficiente
 
     let font_data = find_system_font();
     let font = Font::try_from_vec(font_data).expect("No se pudo cargar ninguna fuente");
@@ -178,6 +143,45 @@ fn main() {
     let mut width = initial_width;
     let mut height = initial_height;
     let mut buffer = vec![0u32; width * height];
+
+    // Definir paletas de colores
+    let background_colors = vec![
+        0x000000, // Negro
+        0xFFFFFF, // Blanco
+        0x1E1E2E, // Gris oscuro (Catppuccin)
+        0x2E3440, // Gris azulado (Nord)
+        0x0F1419, // Casi negro
+        0x282C34, // Gris código (One Dark)
+        0x1A1B23, // Gris muy oscuro
+        0x2D3748, // Gris slate
+        0x1A202C, // Gris charcoal
+        0x0D1117, // GitHub dark
+    ];
+    
+    let font_colors = vec![
+        0xFFFFFF, // Blanco
+        0xFF5555, // Rojo suave
+        0x50FA7B, // Verde neón
+        0x8BE9FD, // Cyan claro
+        0xFFB86C, // Naranja suave
+        0xFF79C6, // Rosa/Magenta
+        0xBD93F9, // Púrpura
+        0xF1FA8C, // Amarillo suave
+        0x6272A4, // Azul gris
+        0x44475A, // Gris comentario
+        0xFF6E6E, // Rojo coral
+        0x69FF94, // Verde menta
+        0x92A5FF, // Azul lavanda
+        0xFFD93D, // Amarillo dorado
+        0xFF9FF3, // Rosa claro
+    ];
+
+    let mut background_index = 0;
+    let mut font_index = 0;
+    
+    // Variables para controlar el debounce de las teclas
+    let mut b_key_pressed = false;
+    let mut f_key_pressed = false;
 
     while window.is_open() && !window.is_key_down(Key::Escape) {
         let (w, h) = window.get_size();
@@ -188,24 +192,52 @@ fn main() {
         }
 
         let now = Local::now();
+        // Cambiar formato para mostrar 3 dígitos de milisegundos en lugar de nanosegundos
         let time_str = format!("{}", now.format("%H:%M:%S.%3f"));
 
-        buffer.fill(0x000000);
-        draw_text_centered(&time_str, &font, scale, &mut buffer, width, height);
+        // Manejar entrada de teclado con debounce
+        let b_key_down = window.is_key_down(Key::B);
+        let f_key_down = window.is_key_down(Key::F);
+        
+        // Cambiar color de fondo (tecla B)
+        if b_key_down && !b_key_pressed {
+            background_index = (background_index + 1) % background_colors.len();
+            println!("Fondo cambiado a índice: {} (0x{:06X})", background_index, background_colors[background_index]);
+        }
+        b_key_pressed = b_key_down;
+        
+        // Cambiar color de fuente (tecla F)
+        if f_key_down && !f_key_pressed {
+            font_index = (font_index + 1) % font_colors.len();
+            println!("Fuente cambiada a índice: {} (0x{:06X})", font_index, font_colors[font_index]);
+        }
+        f_key_pressed = f_key_down;
+
+        // Limpiar completamente el buffer con el color de fondo actual
+        let bg_color = background_colors[background_index];
+        for pixel in buffer.iter_mut() {
+            *pixel = bg_color;
+        }
+        
+        // Dibujar el texto con el color de fuente actual
+        draw_text_centered(&time_str, &font, scale, &mut buffer, width, height, font_colors[font_index], bg_color);
 
         window.update_with_buffer(&buffer, width, height).unwrap();
     }
 }
 
-fn draw_text_centered(text: &str, font: &Font, scale: Scale, buffer: &mut [u32], width: usize, height: usize) {
+fn draw_text_centered(text: &str, font: &Font, scale: Scale, buffer: &mut [u32], width: usize, height: usize, font_color: u32, bg_color: u32) {
     let v_metrics = font.v_metrics(scale);
     
-    // Calcular dimensiones del texto
-    let (text_width, text_height) = calculate_text_dimensions(text, font, scale);
+    // SOLUCIÓN AL TEMBLOR: Usar un ancho fijo basado en el texto más largo posible
+    // Para "HH:MM:SS.999" = 12 caracteres, usamos un ancho fijo
+    let fixed_text_width = scale.x * 0.65 * 12.0; // 12 caracteres con factor 0.65
     
-    // Centrar el texto
-    let start_x = ((width as f32 - text_width) / 2.0).max(0.0);
-    let start_y = ((height as f32 - text_height) / 2.0).max(0.0) + v_metrics.ascent;
+    // Centrar horizontalmente usando el ancho fijo (evita temblor)
+    let start_x = ((width as f32 - fixed_text_width) / 2.0).max(0.0);
+    
+    // Centrar verticalmente basado en la altura real de la ventana
+    let start_y = (height as f32 / 2.0) + (v_metrics.ascent / 2.0);
     
     let glyphs = font.layout(text, scale, point(start_x, start_y));
 
@@ -217,8 +249,25 @@ fn draw_text_centered(text: &str, font: &Font, scale: Scale, buffer: &mut [u32],
 
                 if x >= 0 && y >= 0 && (x as usize) < width && (y as usize) < height {
                     let idx = y as usize * width + x as usize;
-                    let shade = (v * 255.0) as u32;
-                    buffer[idx] = (shade << 16) | (shade << 8) | shade;
+                    let alpha = v;
+                    
+                    if alpha > 0.01 { // Umbral mínimo para evitar píxeles fantasma
+                        // Extraer componentes RGB del color de fuente y fondo
+                        let font_r = ((font_color >> 16) & 0xFF) as f32;
+                        let font_g = ((font_color >> 8) & 0xFF) as f32;
+                        let font_b = (font_color & 0xFF) as f32;
+                        
+                        let bg_r = ((bg_color >> 16) & 0xFF) as f32;
+                        let bg_g = ((bg_color >> 8) & 0xFF) as f32;
+                        let bg_b = (bg_color & 0xFF) as f32;
+                        
+                        // Alpha blending correcto
+                        let final_r = ((font_r * alpha + bg_r * (1.0 - alpha)) as u32).min(255);
+                        let final_g = ((font_g * alpha + bg_g * (1.0 - alpha)) as u32).min(255);
+                        let final_b = ((font_b * alpha + bg_b * (1.0 - alpha)) as u32).min(255);
+                        
+                        buffer[idx] = (final_r << 16) | (final_g << 8) | final_b;
+                    }
                 }
             });
         }
