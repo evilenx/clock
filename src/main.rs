@@ -25,7 +25,7 @@ fn default_auto_resize() -> bool { true }
 
 fn get_config_path() -> String {
     let home = std::env::var("HOME").unwrap_or_else(|_| ".".to_string());
-    format!("{}/.config/big_clock/config.toml", home)
+    format!("{}/.config/clock/config.toml", home)
 }
 
 fn read_config() -> (f32, f32, bool) {
@@ -77,10 +77,10 @@ fn find_system_font() -> Vec<u8> {
         ]
     } else if cfg!(target_os = "macos") {
         vec![
-            "/System/Library/Fonts/Monaco.ttf",
             "/System/Library/Fonts/Helvetica.ttc", 
             "/System/Library/Fonts/Arial.ttf",
             "/System/Library/Fonts/Courier.ttc",
+            "/System/Library/Fonts/Monaco.ttf",
         ]
     } else {
         vec![
@@ -144,37 +144,66 @@ fn main() {
     let mut height = initial_height;
     let mut buffer = vec![0u32; width * height];
 
-    // Definir paletas de colores
-    let background_colors = vec![
-        0x000000, // Negro
-        0xFFFFFF, // Blanco
-        0x1E1E2E, // Gris oscuro (Catppuccin)
-        0x2E3440, // Gris azulado (Nord)
-        0x0F1419, // Casi negro
-        0x282C34, // Gris código (One Dark)
-        0x1A1B23, // Gris muy oscuro
-        0x2D3748, // Gris slate
-        0x1A202C, // Gris charcoal
-        0x0D1117, // GitHub dark
-    ];
-    
-    let font_colors = vec![
-        0xFFFFFF, // Blanco
-        0xFF5555, // Rojo suave
-        0x50FA7B, // Verde neón
-        0x8BE9FD, // Cyan claro
-        0xFFB86C, // Naranja suave
-        0xFF79C6, // Rosa/Magenta
-        0xBD93F9, // Púrpura
-        0xF1FA8C, // Amarillo suave
-        0x6272A4, // Azul gris
-        0x44475A, // Gris comentario
-        0xFF6E6E, // Rojo coral
-        0x69FF94, // Verde menta
-        0x92A5FF, // Azul lavanda
-        0xFFD93D, // Amarillo dorado
-        0xFF9FF3, // Rosa claro
-    ];
+		// Definir paletas de colores
+		let background_colors = vec![
+				// Oscuros / Backgrounds principales
+				0x000000, // Negro absoluto
+				0xFFFFFF, // Blanco
+				0x1E1E2E, // Catppuccin - Mocha
+				0x2E3440, // Nord - Polar Night
+				0x0F1419, // Base ultra oscuro
+				0x282C34, // One Dark
+				0x1A1B23, // Gris profundo
+				0x2D3748, // Tailwind Slate 800
+				0x1A202C, // Tailwind Gray 900
+				0x0D1117, // GitHub dark
+				0x1C1C1C, // Gruvbox dark0
+				0x3B4252, // Nord - dark gray
+				0x112240, // Oceanic dark blue
+				0x002B36, // Solarized base03
+				0x011627, // Night Owl background
+				0x191724, // Rose Pine - base
+				0x1F2937, // Tailwind Gray 800
+				0x121212, // Material dark
+		];
+
+		// Colores de fuente
+		let font_colors = vec![
+				0xFFFFFF, // Blanco puro
+				0xE06C75, // One Dark - rojo
+				0xFF5555, // Rojo suave
+				0x50FA7B, // Verde neón
+				0x8BE9FD, // Cyan claro
+				0xFFB86C, // Naranja pastel
+				0xFF79C6, // Magenta claro
+				0xBD93F9, // Púrpura neón
+				0xF1FA8C, // Amarillo pastel
+				0x6272A4, // Gris azulado
+				0x44475A, // Gris oscuro
+				0xFF6E6E, // Rojo coral
+				0x69FF94, // Verde menta
+				0x92A5FF, // Azul lavanda
+				0xFFD93D, // Amarillo dorado
+				0xFF9FF3, // Rosa claro
+				0xFAB387, // Catppuccin Peach
+				0xA6E3A1, // Catppuccin Green
+				0x89DCEB, // Catppuccin Sky
+				0xF38BA8, // Catppuccin Red
+				0xCBA6F7, // Catppuccin Mauve
+				0xF2CDCD, // Rosado pálido
+				0xD3869B, // Gruvbox - Purple
+				0xB8BB26, // Gruvbox - Green
+				0xFABD2F, // Gruvbox - Yellow
+				0x83A598, // Gruvbox - Aqua
+				0x8FBCBB, // Nord - Frost
+				0x88C0D0, // Nord - Blue
+				0x5E81AC, // Nord - Indigo
+				0xBF616A, // Nord - Red
+				0xD08770, // Nord - Orange
+				0xEBCB8B, // Nord - Yellow
+				0xA3BE8C, // Nord - Green
+				0xB48EAD, // Nord - Purple
+				];
 
     let mut background_index = 0;
     let mut font_index = 0;
