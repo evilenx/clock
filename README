@@ -1,0 +1,33 @@
+# Clock
+
+## Description
+
+**Clock** is a project developed in Rust that provides an implementation of a digital clock with nanoseconds.
+
+![Clock Image](path/to/your/clock_image.png)
+
+## Requirements
+
+- **Rust**
+- **Cargo**
+
+## Installation
+
+1. **Clone the repository:**
+
+    ```bash
+    git clone https://github.com/evilenx/clock
+    cd Clock
+    ```
+
+2. **Build the project:**
+
+    ```bash
+    cargo build --release
+    ```
+
+3. **Run the clock:**
+
+    ```bash
+    cargo run
+    ```
