@@ -1,5 +1,5 @@
 # Clock
-![Clock Image](clock.gif)
+![Clock Image](assets/clock.gif)
 
 ## Description
   **Clock** is a Rust project that provides a digital clock implementation with nanosecond precision.
