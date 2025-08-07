@@ -31,6 +31,12 @@
   cargo run --release
   ```
 
+  4. **Using curl**
+  ```bash
+  curl -sSf https://raw.githubusercontent.com/evilenx/clock/main/install.sh | bash
+
+  ```
+
 ## Configuration
   The application requires a configuration file located at `~/.config/clock/config.yml` to set the font size.
 
