@@ -1,5 +1,9 @@
 # Clock
 ![Clock Image](assets/clock.gif)
+![Rust](https://img.shields.io/badge/rust-%23000000.svg?style=for-the-badge&logo=rust&logoColor=white)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
+[![Version](https://img.shields.io/github/v/release/evilenx/clock?style=for-the-badge)](https://github.com/evilenx/clock/releases)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/evilenx/clock/ci.yml?style=for-the-badge)](https://github.com/evilenx/clock/actions)
 
 ## Description
   **Clock** is a Rust project that provides a digital clock implementation with nanosecond precision.
