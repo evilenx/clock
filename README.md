@@ -9,6 +9,7 @@
   [![Version](https://img.shields.io/github/v/release/evilenx/clock?style=for-the-badge)](https://github.com/evilenx/clock/releases)
   [![Build Status](https://img.shields.io/github/actions/workflow/status/evilenx/clock/ci.yml?style=for-the-badge)](https://github.com/evilenx/clock/actions)
 </div>
+
 ## Description
   **Clock** is a Rust project that provides a digital clock implementation with nanosecond precision.
 
