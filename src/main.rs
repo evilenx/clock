@@ -113,7 +113,15 @@ fn find_system_font() -> Vec<u8> {
     include_bytes!("../assets/Inter-Regular.otf").to_vec()
 }
 
+mod help;
+
 fn main() {
+
+		// handle command line arguments
+		if help::handle_args() {
+				return; 
+		}
+
     let (font_size, padding, auto_resize) = read_config();
     let scale = Scale::uniform(font_size);
     
@@ -302,3 +310,5 @@ fn draw_text_centered(text: &str, font: &Font, scale: Scale, buffer: &mut [u32],
         }
     }
 }
+
+
