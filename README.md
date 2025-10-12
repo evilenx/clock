@@ -1,6 +1,6 @@
 # Clock
 <div align="center">
-  <img src="assets/clock.gif" alt="Clock Image" />
+  <img src="assets/image/clock.gif" alt="Clock Image" />
   
   <br/>
   
