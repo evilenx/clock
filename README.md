@@ -1,6 +1,6 @@
 # Clock
 <div align="center">
-  <img src="assets/image/clock.gif" alt="Clock Image" width="500" height="500" />
+  <img src="assets/image/clock.gif" alt="Clock Image" width="800" height="800" />
   <br/>
   
 ![Rust](https://img.shields.io/badge/rust-%23000000.svg?style=for-the-badge&logo=rust&logoColor=white)
